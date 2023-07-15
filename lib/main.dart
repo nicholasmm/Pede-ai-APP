@@ -125,7 +125,37 @@ class NextScreenGarcom extends StatelessWidget {
       ),
             floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Add your onPressed code here!
+          //Script para janela popup
+            showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Comanda'),
+                content: const SizedBox(
+                  width: 500, // Defina a largura desejada
+                  height: 100, // Defina a altura desejada
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Digite aqui a comanda do cliente:',
+                      //ontentPadding: EdgeInsets.symmetric(vertical: 30), Aumentar altura da textbox
+                    ),
+                  textInputAction: TextInputAction.newline, // Permitir nova linha ao pressionar "ENTER"
+                  keyboardType: TextInputType.multiline, // Permitir múltiplas linhas
+                  maxLines: null,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('Enviar'),
+                    onPressed: () {
+                      // Aqui você pode implementar a lógica para enviar a comanda
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
         },
         label: const Text('Fazer pedido'),
         icon: const Icon(Icons.list_alt),
@@ -134,9 +164,12 @@ class NextScreenGarcom extends StatelessWidget {
     );
   }
 }
-
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: LoginPage(),
   ));
 }
+
+
+
+
