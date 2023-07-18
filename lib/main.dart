@@ -112,7 +112,7 @@ class NextScreen extends StatelessWidget {
 }
 
 class NextScreenGarcom extends StatelessWidget {
-  const NextScreenGarcom({super.key});
+  const NextScreenGarcom({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -123,38 +123,20 @@ class NextScreenGarcom extends StatelessWidget {
       body: const Center(
         child: Text('Welcome to garçom screen!'),
       ),
-            floatingActionButton: FloatingActionButton.extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          //Script para janela popup
-            showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Comanda'),
-                content: const SizedBox(
-                  width: 500, // Defina a largura desejada
-                  height: 100, // Defina a altura desejada
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Digite aqui a comanda do cliente:',
-                      //ontentPadding: EdgeInsets.symmetric(vertical: 30), Aumentar altura da textbox
-                    ),
-                  textInputAction: TextInputAction.newline, // Permitir nova linha ao pressionar "ENTER"
-                  keyboardType: TextInputType.multiline, // Permitir múltiplas linhas
-                  maxLines: null,
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    child: const Text('Enviar'),
-                    onPressed: () {
-                      // Aqui você pode implementar a lógica para enviar a comanda
-                      Navigator.of(context).pop();
-                    },
-                  ),
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (BuildContext context) {
+              return ComandaScreen(
+                menuItems: [
+                  MenuItem(name: 'Hamburguer', ingredients: ['Pão', 'Carne', 'Queijo', 'Alface', 'Tomate']),
+                  MenuItem(name: 'Pizza', ingredients: ['Massa', 'Queijo', 'Molho de tomate', 'Pepperoni', 'Cebola']),
+                  MenuItem(name: 'Salada', ingredients: ['Alface', 'Tomate', 'Cenoura', 'Beterraba', 'Molho de salada']),
                 ],
+                selectedItems: List<bool>.filled(3, false),
               );
-            },
+            }),
           );
         },
         label: const Text('Fazer pedido'),
@@ -164,6 +146,105 @@ class NextScreenGarcom extends StatelessWidget {
     );
   }
 }
+
+class ComandaScreen extends StatelessWidget {
+    final List<MenuItem> menuItems;
+  final List<bool> selectedItems;
+
+  const ComandaScreen({
+    Key? key,
+    required this.menuItems,
+    required this.selectedItems,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Comanda'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Selecione os itens desejados:'),
+              const SizedBox(height: 10),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: menuItems.length,
+                itemBuilder: (context, index) {
+                  return CheckboxListTile(
+                    title: Text(menuItems[index].name),
+                    value: selectedItems[index],
+                    onChanged: (value) {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('Remover ingredientes'),
+                            content: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Remover ingredientes de ${menuItems[index].name}:'),
+                                  const SizedBox(height: 10),
+                                  ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: menuItems[index].ingredients.length,
+                                    itemBuilder: (context, ingredientIndex) {
+                                      return CheckboxListTile(
+                                        title: Text(menuItems[index].ingredients[ingredientIndex]),
+                                        value: false,
+                                        onChanged: (value) {
+                                          // Faça algo com a opção selecionada
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                child: const Text('Cancelar'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                              TextButton(
+                                child: const Text('Enviar'),
+                                onPressed: () {
+                                  // Faça algo com as opções selecionadas
+                                  Navigator.of(context).pop();
+                                },
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+
+  class MenuItem {
+    final String name;
+    final List<String> ingredients;
+
+    MenuItem({required this.name, required this.ingredients});
+  }
+
+
 void main() {
   runApp(const MaterialApp(
     home: LoginPage(),
