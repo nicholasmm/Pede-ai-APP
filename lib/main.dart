@@ -134,7 +134,7 @@ class NextScreenGarcom extends StatelessWidget {
                   MenuItem(name: 'Pizza', ingredients: ['Massa', 'Queijo', 'Molho de tomate', 'Pepperoni', 'Cebola']),
                   MenuItem(name: 'Salada', ingredients: ['Alface', 'Tomate', 'Cenoura', 'Beterraba', 'Molho de salada']),
                 ],
-                selectedItems: List<bool>.filled(3, false),
+                selectedItems: List<bool>.filled(3, true),
               );
             }),
           );
@@ -147,15 +147,25 @@ class NextScreenGarcom extends StatelessWidget {
   }
 }
 
-class ComandaScreen extends StatelessWidget {
-    final List<MenuItem> menuItems;
-  final List<bool> selectedItems;
+class ComandaScreen extends StatefulWidget {
+  final List<MenuItem> menuItems;
 
-  const ComandaScreen({
-    Key? key,
-    required this.menuItems,
-    required this.selectedItems,
-  }) : super(key: key);
+  const ComandaScreen({Key? key, required this.menuItems, required List<bool> selectedItems}) : super(key: key);
+
+  @override
+  // ignore: library_private_types_in_public_api
+  _ComandaScreenState createState() => _ComandaScreenState();
+}
+
+class _ComandaScreenState extends State<ComandaScreen> {
+  late List<bool> selectedItems;
+  List<MenuItem> selectedMenuItems = [];
+
+  @override
+  void initState() {
+    super.initState();
+    selectedItems = List<bool>.filled(widget.menuItems.length, false);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,60 +183,53 @@ class ComandaScreen extends StatelessWidget {
               const SizedBox(height: 10),
               ListView.builder(
                 shrinkWrap: true,
-                itemCount: menuItems.length,
+                itemCount: widget.menuItems.length,
                 itemBuilder: (context, index) {
                   return CheckboxListTile(
-                    title: Text(menuItems[index].name),
+                    title: Text(widget.menuItems[index].name),
                     value: selectedItems[index],
                     onChanged: (value) {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text('Remover ingredientes'),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Remover ingredientes de ${menuItems[index].name}:'),
-                                  const SizedBox(height: 10),
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: menuItems[index].ingredients.length,
-                                    itemBuilder: (context, ingredientIndex) {
-                                      return CheckboxListTile(
-                                        title: Text(menuItems[index].ingredients[ingredientIndex]),
-                                        value: false,
-                                        onChanged: (value) {
-                                          // Faça algo com a opção selecionada
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                child: const Text('Cancelar'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                              TextButton(
-                                child: const Text('Enviar'),
-                                onPressed: () {
-                                  // Faça algo com as opções selecionadas
-                                  Navigator.of(context).pop();
-                                },
-                              ),
-                            ],
-                          );
-                        },
-                      );
+                      setState(() {
+                        selectedItems[index] = value ?? false;
+                        if (value == true) {
+                          selectedMenuItems.add(widget.menuItems[index]);
+                        } else {
+                          selectedMenuItems.remove(widget.menuItems[index]);
+                        }
+                        widget.menuItems[index].quantity = selectedItems[index] ? 1 : 0;
+                      });
                     },
                   );
                 },
+              ),
+              const SizedBox(height: 20), // Espaço entre a lista e o botão
+              Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) {
+      
+                      return FinalizarPedido(selectedItems: selectedMenuItems,);
+                    }),
+                  );
+                },
+                
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder( // bordas arredondadas
+                      borderRadius: BorderRadius.circular(11),
+                    ),
+                  ),
+                
+                child: const Row( // Usar um Row para combinar ícone e texto horizontalmente
+                  mainAxisSize: MainAxisSize.min, // Definir o tamanho do Row conforme necessário
+                  children: [
+                    Icon(Icons.check), // Ícone
+                    SizedBox(width: 8), // Espaço entre o ícone e o texto
+                    Text('Finalizar Pedido'), // Texto
+                  ],
+                )
+              ),
               ),
             ],
           ),
@@ -240,9 +243,118 @@ class ComandaScreen extends StatelessWidget {
   class MenuItem {
     final String name;
     final List<String> ingredients;
+    int quantity;
 
-    MenuItem({required this.name, required this.ingredients});
+    MenuItem({required this.name, required this.ingredients, this.quantity = 1});
   }
+
+
+// ignore: camel_case_types
+class FinalizarPedido extends StatefulWidget {
+  final List<MenuItem> selectedItems;
+  FinalizarPedido({required this.selectedItems});
+
+  @override
+  _FinalizarPedidoState createState() => _FinalizarPedidoState();
+}
+
+class _FinalizarPedidoState extends State<FinalizarPedido> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Finalizar Pedido'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 10),
+              const Text('Itens selecionados:'),
+              const SizedBox(height: 10),
+              ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.selectedItems.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(widget.selectedItems[index].name),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: Icon(Icons.remove),
+                              onPressed: () {
+                                if (widget.selectedItems[index].quantity > 1) {
+                                  setState(() {
+                                    widget.selectedItems[index].quantity--;
+                                  });
+                                }
+                              },
+                            ),
+                            Text(widget.selectedItems[index].quantity.toString()),
+                            IconButton(
+                              icon: Icon(Icons.add),
+                              onPressed: () {
+                                setState(() {
+                                  widget.selectedItems[index].quantity++;});
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 60),
+              const Text('OBSERVAÇÕES:'),
+              const SingleChildScrollView( // Adicionar um espaço
+              child: TextField(
+                // Configurar as propriedades do TextField conforme necessário
+                maxLines: null,
+                decoration: InputDecoration(
+                  hintText: 'Ex: Hamburguer sem alface e tomate.'), //placeholder
+          )),
+            const SizedBox(height: 20),
+            Center(
+            child: ElevatedButton(
+                onPressed: () {
+                  // Lógica do botão
+                },
+
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder( // bordas arredondadas
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+
+                child: const Row( // Usar um Row para combinar ícone e texto horizontalmente
+                  mainAxisSize: MainAxisSize.min, // Definir o tamanho do Row conforme necessário
+                  children: [
+                    Icon(Icons.fastfood_outlined), // Ícone
+                    SizedBox(width: 8), // Espaço entre o ícone e o texto
+                    Text('Concluir Pedido'), // Texto
+                  ],
+                )
+              )
+                
+              )
+          ],             
+        ),
+      ), 
+    ),
+  );
+}
+}
+
+
+
+
+
 
 
 void main() {
