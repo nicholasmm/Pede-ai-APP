@@ -290,7 +290,7 @@ class _ComandaScreenState extends State<ComandaScreen> {
                   children: [
                     Icon(Icons.check), // Ícone
                     SizedBox(width: 8), // Espaço entre o ícone e o texto
-                    Text('Concluir Pedido'), // Texto
+                    Text('Finalizar Pedido'), // Texto
                   ],
                 )
               ),
@@ -422,7 +422,7 @@ class _FinalizarPedidoState extends State<FinalizarPedido> {
                     children: [
                       Icon(Icons.check),
                       SizedBox(width: 8),
-                      Text('Finalizar Pedido'),
+                      Text('Concluir Pedido'),
                     ],
                   ),
                 ),
